@@ -1,25 +1,10 @@
-import yargs from 'yargs';
-import { createFile, getFile, getFileInfo } from './file.js';
+import express from 'express';
+import morgan from 'morgan';
+import { filesRouter } from './filesRouter.js';
 
-function invokeAction({ action, fileName, content }) {
-	switch (action) {
-		case 'create':
-			createFile(fileName, content);
-			break;
+const app = express();
 
-		case 'get':
-			getFile();
-			break;
-
-		case 'read':
-			getFileInfo(fileName);
-			break;
-
-		default:
-			console.warn('\x1B[31m Unknown action type!');
-	}
-}
-
-const { argv } = yargs(process.argv.slice(2));
-
-invokeAction(argv);
+app.use(morgan('combined'));
+app.use(express.json());
+app.use('/files', filesRouter);
+app.listen(3000, () => console.log('Server start'));
