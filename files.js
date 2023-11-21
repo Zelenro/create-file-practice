@@ -3,48 +3,49 @@ import path from 'path';
 import { validateData } from './helpers/validateData.js';
 import { checkExtension } from './helpers/checkExtension.js';
 
-export const createFile = async (fileName, content) => {
+export const createFile = async (req, res, next) => {
+	const { fileName, content } = req.body;
+	console.log(req.body);
+
 	const fileCheck = {
 		fileName,
 		content,
 	};
 	const checkData = validateData(fileCheck);
 	if (checkData.error) {
-		console.log(
-			`Please specified ${checkData.error.details[0].path[0]} parameter`
-		);
-		return;
+		res.status(400).json({
+			message: `Please specified ${checkData.error.details[0].path[0]} parameter`,
+		});
 	}
 	const { fileExtension, result } = checkExtension(fileName);
-	// console.log(checkData.error.details[0]);
+
 	if (!result) {
-		console.log(
-			`This APP doesn't support extension ${fileExtension}. Enter valid extension`
-		);
-		return;
+		res.status(400).json({
+			message: `This APP doesn't support extension ${fileExtension}. Enter valid extension`,
+		});
 	}
 
 	const filePath = path.resolve('files', fileName);
 	try {
 		await fs.writeFile(filePath, content, 'utf-8');
-		console.log('Well done!');
+		res.status(201).json({ message: 'Well done' });
 	} catch (error) {
-		console.log(error);
+		res.status(500).json({
+			message: `Server error`,
+		});
 	}
 };
 
-export const getFile = async () => {
+export const getFiles = async (req, res, next) => {
 	const pathHolder = path.resolve('files');
 	try {
 		const files = await fs.readdir(pathHolder);
 		if (!files.length) {
-			console.log('No files');
-			return;
-		} else {
-			return files.forEach(file => console.log(file));
+			res.status(404).json({ message: 'Sorry' });
 		}
+		res.status(200).json(files);
 	} catch (error) {
-		console.log(error);
+		res.status(500).json({ message: 'Server error' });
 	}
 };
 
